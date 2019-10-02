@@ -14,7 +14,7 @@ export class Places extends Component {
     const locationType = e.target === 3 ? 'destination' : 'origin';
     axios
       .get(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=<YOUR KEY>&input=${
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?key=<YOUR_KEY>&input=${
           e.nativeEvent.text
         } s&radius=2000`,
       )
@@ -32,10 +32,12 @@ export class Places extends Component {
   };
 
   handleListItemPress(description, fieldType) {
-    return this.setState({
+    this.setState({
       fieldStatus: false,
       [fieldType]: description,
     });
+    // const {fieldType} = this.state;
+    return this.props.getOriginAndDestination(description, fieldType);
   }
 
   displayLocationList = locationDescription => {
