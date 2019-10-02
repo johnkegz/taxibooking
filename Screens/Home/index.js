@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View, StyleSheet, Text} from 'react-native';
 import {PermissionsAndroid} from 'react-native';
+import axios from 'axios';
 import Maps from '../Map';
 import Geolocation from 'react-native-geolocation-service';
 import Places from './places';
@@ -39,9 +40,39 @@ export class Home extends Component {
     latitude: 0,
     longitude: 0,
     er: 'null',
+    origin: {lat: 0, lng: 0},
+    destination: {lat: 0, lng: 0},
+    distance: 0,
+    duration: 0,
   };
 
-  componentWillMount() {
+  //get origin and destination
+  getOriginAndDestination = (directionType, fieldType) => {
+    axios
+      .get(
+        `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${directionType}&inputtype=textquery&fields=photos,formatted_address,name,rating,opening_hours,geometry&key=<YOUR_KEY>`,
+      )
+      .then(data => {
+        return this.setState({
+          fieldStatus: false,
+          [fieldType]: data.data.candidates[0].geometry.location,
+        });
+      })
+      .catch(e => {
+        console.log('error ++', e);
+      });
+    return true;
+  };
+
+  distanceAndDuration = (distance, duration) => {
+    this.setState({
+      distance: distance,
+      duration: duration,
+    });
+    return true;
+  };
+
+  UNSAFE_componentWillMount() {
     requestLocationPermission();
   }
   componentDidMount() {
@@ -63,14 +94,35 @@ export class Home extends Component {
     );
   }
   render() {
-    const {latitude, longitude} = this.state;
+    const {
+      latitude,
+      longitude,
+      origin,
+      destination,
+      distance,
+      duration,
+    } = this.state;
+    const newDestination = {
+      latitude: destination.lat,
+      longitude: destination.lng,
+    };
+    const newOrigin = {
+      latitude: origin.lat,
+      longitude: origin.lng,
+    };
     return (
       <View>
         <View style={styles.places}>
-          <Places />
+          <Places getOriginAndDestination={this.getOriginAndDestination} />
         </View>
         <View>
-          <Maps latitude={latitude} longitude={longitude} />
+          <Maps
+            origin={newOrigin}
+            destination={newDestination}
+            latitude={latitude}
+            longitude={longitude}
+            distanceAndDuration={this.distanceAndDuration}
+          />
         </View>
       </View>
     );
